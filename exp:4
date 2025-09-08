@@ -1,0 +1,33 @@
+from itertools import permutations
+
+def solve(puzzle):
+    puzzle = puzzle.replace(" ", "").replace("=", "==")
+    letters = sorted(set(filter(str.isalpha, puzzle)))
+    if len(letters) > 10:
+        print("Too many unique letters (max 10).")
+        return
+    
+    # Try all digit assignments
+    for perm in permutations("0123456789", len(letters)):
+        mapping = dict(zip(letters, perm))
+        
+        # Leading zero check
+        if any(mapping[w[0]] == "0" for w in puzzle.replace("==", "+").split("+")):
+            continue
+        
+        # Replace letters with digits
+        expr = "".join(mapping.get(ch, ch) for ch in puzzle)
+        
+        try:
+            if eval(expr):
+                print("Solution:", expr)
+                return
+        except:
+            continue
+    
+    print("No solution found.")
+
+# Example usage
+solve("SEND + MORE = MONEY")
+output:
+Solution: 9567+1085==10652
