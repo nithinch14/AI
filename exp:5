@@ -1,0 +1,58 @@
+from collections import deque
+
+def is_valid(m1, c1, m2, c2):
+    # Missionaries >= Cannibals on each side (unless missionaries = 0)
+    if (m1 and m1 < c1) or (m2 and m2 < c2):
+        return False
+    return True
+
+def missionaries_cannibals():
+    start = (3, 3, 0)  # (M_left, C_left, boat_side) 0=left, 1=right
+    goal = (0, 0, 1)
+    queue = deque([(start, [])])
+    visited = set([start])
+
+    moves = [(1,0),(2,0),(0,1),(0,2),(1,1)]  # (M, C)
+
+    while queue:
+        (m1, c1, boat), path = queue.popleft()
+        m2, c2 = 3 - m1, 3 - c1
+
+        if (m1, c1, boat) == goal:
+            return path + [goal]
+
+        for dm, dc in moves:
+            if boat == 0:  # move from left to right
+                new = (m1 - dm, c1 - dc, 1)
+                if new[0] >= 0 and new[1] >= 0:
+                    if is_valid(new[0], new[1], 3 - new[0], 3 - new[1]) and new not in visited:
+                        visited.add(new)
+                        queue.append((new, path + [(m1, c1, boat)]))
+            else:  # move from right to left
+                new = (m1 + dm, c1 + dc, 0)
+                if new[0] <= 3 and new[1] <= 3:
+                    if is_valid(new[0], new[1], 3 - new[0], 3 - new[1]) and new not in visited:
+                        visited.add(new)
+                        queue.append((new, path + [(m1, c1, boat)]))
+    return None
+
+# Run
+solution = missionaries_cannibals()
+if solution:
+    for step in solution:
+        print(step)
+else:
+    print("No solution found.")
+output:
+(3, 3, 0)
+(3, 1, 1)
+(3, 2, 0)
+(3, 0, 1)
+(3, 1, 0)
+(1, 1, 1)
+(2, 2, 0)
+(0, 2, 1)
+(0, 3, 0)
+(0, 1, 1)
+(0, 2, 0)
+(0, 0, 1)
