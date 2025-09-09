@@ -1,0 +1,16 @@
+% sum_to_n.pl
+% sum_to_n(N, Sum).
+
+sum_to_n(0, 0) :- !.
+sum_to_n(N, Sum) :-
+    N > 0,
+    N1 is N - 1,
+    sum_to_n(N1, S1),
+    Sum is S1 + N.
+
+% Usage:
+% ?- sum_to_n(5, S).
+% S = 15.
+
+OUTPUT:
+?- sum_to_n(5, S).
