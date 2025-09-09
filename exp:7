@@ -1,0 +1,89 @@
+from typing import Tuple, List, Set
+from collections import deque
+
+def get_successors(state: Tuple[Tuple[int, int], List[List[int]]]) -> List[Tuple[Tuple[int, int], List[List[int]]]]:
+    """
+    Generate successor states from the current state.
+
+    Rules (typical variant):
+    - Move to any adjacent cell (up, down, left, right) within bounds.
+    - When you move to a cell, you clean it (set to 0).
+    - You may choose to toggle dirt in the visited cell as an optional extension (here we just clean).
+
+    Feel free to modify this function to reflect your exact problem rules.
+    """
+    (x, y), grid = state
+    successors: List[Tuple[Tuple[int, int], List[List[int]]]] = []
+
+    moves = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    n = len(grid)
+    m = len(grid[0]) if n > 0 else 0
+
+    for dx, dy in moves:
+        nx, ny = x + dx, y + dy
+        if 0 <= nx < n and 0 <= ny < m:
+            # Copy grid
+            new_grid = [row[:] for row in grid]
+            # Cleaning action: clean the new cell you moved to
+            new_grid[nx][ny] = 0
+            successors.append(((nx, ny), new_grid))
+
+    return successors
+
+def grid_to_tuple(grid: List[List[int]]) -> Tuple[Tuple[int, ...], ...]:
+    return tuple(tuple(row) for row in grid)
+
+def is_goal(grid: List[List[int]]) -> bool:
+    return all(cell == 0 for row in grid for cell in row)
+
+def bfs(state: Tuple[Tuple[int, int], List[List[int]]]) -> bool:
+    """
+    Breadth-First Search to determine if we can clean all cells.
+
+    - state: ((x, y), grid)
+    Returns True if a goal state is reachable, False otherwise.
+    """
+    start = state
+    if is_goal(start[1]):
+        return True
+
+    # Visited set stores a hashable representation: ((x, y), grid_as_tuple)
+    start_key = (start[0], grid_to_tuple(start[1]))
+    visited: Set[Tuple[Tuple[int, int], Tuple[Tuple[int, ...], ...]]] = set()
+    visited.add(start_key)
+
+    q = deque([start])
+
+    while q:
+        current = q.popleft()
+        (x, y), grid = current
+
+        if is_goal(grid):
+            return True
+
+        for succ in get_successors(current):
+            succ_key = (succ[0], grid_to_tuple(succ[1]))
+            if succ_key not in visited:
+                visited.add(succ_key)
+                q.append(succ)
+
+    return False
+
+if _name_ == '_main_':
+    # Example initial grid and position
+    grid = [
+        [0, 1, 1, 1],
+        [0, 0, 1, 0],
+        [1, 0, 0, 1],
+        [1, 1, 1, 0]
+    ]
+    initial_position = (0, 0)
+    initial_state = (initial_position, grid)
+
+    if bfs(initial_state):
+        print("All cells can be cleaned (goal reachable) with BFS.")
+Output:
+.
+
+    else:
+        print("Goal not reachable with the given rules.")
