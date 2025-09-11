@@ -1,0 +1,78 @@
+
+import heapq
+
+class PuzzleState:
+    def __init__(self, board, goal, path=[]):
+        self.board = board
+        self.goal = goal
+        self.path = path
+        self.zero = self.board.index(0)  # position of blank
+        self.size = int(len(board) ** 0.5)
+
+    def is_goal(self):
+        return self.board == self.goal
+
+    def get_neighbors(self):
+        neighbors = []
+        x, y = divmod(self.zero, self.size)
+        moves = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # up, down, left, right
+        for dx, dy in moves:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < self.size and 0 <= ny < self.size:
+                new_zero = nx * self.size + ny
+                new_board = self.board[:]
+                new_board[self.zero], new_board[new_zero] = new_board[new_zero], new_board[self.zero]
+                neighbors.append(PuzzleState(new_board, self.goal, self.path + [new_board]))
+        return neighbors
+
+    def h(self):
+        """Manhattan Distance heuristic"""
+        distance = 0
+        for i, tile in enumerate(self.board):
+            if tile == 0: 
+                continue
+            gx, gy = divmod(self.goal.index(tile), self.size)
+            x, y = divmod(i, self.size)
+            distance += abs(x - gx) + abs(y - gy)
+        return distance
+
+    def f(self):
+        return len(self.path) + self.h()
+
+    def __lt__(self, other):
+        return self.f() < other.f()
+
+def solve_puzzle(start, goal):
+    open_list = []
+    heapq.heappush(open_list, PuzzleState(start, goal, [start]))
+    visited = set()
+    
+    while open_list:
+        current = heapq.heappop(open_list)
+        if tuple(current.board) in visited:
+            continue
+        visited.add(tuple(current.board))
+
+        if current.is_goal():
+            return current.path
+
+        for neighbor in current.get_neighbors():
+            if tuple(neighbor.board) not in visited:
+                heapq.heappush(open_list, neighbor)
+
+    return None
+
+# Example
+start = [1,2,3,4,0,5,6,7,8]  # 0 = blank
+goal  = [1,2,3,4,5,6,7,8,0]
+solution = solve_puzzle(start, goal)
+
+print("Steps to solve 8-Puzzle:")
+for step in solution:
+    print(step)
+output:
+Steps to solve 8-Puzzle:
+[1, 2, 3, 4, 0, 5, 6, 7, 8]
+[1, 2, 3, 4, 5, 0, 6, 7, 8]
+[1, 2, 3, 4, 5, 6, 7, 0, 8]
+[1, 2, 3, 4, 5, 6, 7, 8, 0]
